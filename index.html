@@ -26,8 +26,6 @@
         
         let db;
         
-        // This MUST match the path in your Firebase Guide (Step 4)
-        // artifacts/default-app-id/public/data
         const appId = 'default-app-id';
 
         try {
@@ -35,29 +33,23 @@
             firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
             
-            // Set log level for debugging
             firebase.firestore.setLogLevel('Debug');
 
             console.log("Firebase initialized successfully (classic script).");
 
         } catch (error) {
             console.error("Firebase initialization failed:", error);
-            // We'll still allow the page to run, but real-time features will be disabled.
         }
         
-        // --- New Global Quick View Function ---
-        // This function is kept for backwards compatibility but its main use (opening a quick view modal) is now replaced by the detail page logic.
+        // --- New Global Quick View Function (Redirects to Detail Page) ---
         window.openQuickView = function(productCard) {
             
-            // 1. Get the Product ID from the card
             const productId = productCard.dataset.productId;
             if (!productId) {
                 console.error("No product ID found on card. Make sure 'data-product-id' is set.");
                 return;
             }
             
-            // This function is now redirected to the detail page functionality when called from cards.
-            console.log("Quick View Modal logic triggered for: " + productId + " (redirecting to Detail Page).");
             openProductDetailPage(productId);
         };
     </script>
@@ -1477,7 +1469,7 @@ right: 0;
         });
     </script>
     
-    <script>
+    <script id="main-functions-script">
         const mainContent = document.getElementById('main-content');
         const allProductsPage = document.getElementById('all-products-page');
         const returnPolicyPage = document.getElementById('return-policy-page');
@@ -1485,8 +1477,8 @@ right: 0;
         const termsOfServicePage = document.getElementById('terms-of-service-page');
         const shoppingCartPage = document.getElementById('shopping-cart-page');
         const checkoutPage = document.getElementById('checkout-page');
-        const wishlistPage = document.getElementById('wishlist-page'); // NEW
-        const productDetailPage = document.getElementById('product-detail-page'); // NEW DETAIL PAGE
+        const wishlistPage = document.getElementById('wishlist-page'); 
+        const productDetailPage = document.getElementById('product-detail-page'); 
 
         
         const mobileMenu = document.getElementById('mobile-menu');
@@ -1500,8 +1492,8 @@ right: 0;
             termsOfServicePage.classList.add('hidden');
             shoppingCartPage.classList.add('hidden');
             checkoutPage.classList.add('hidden');
-            wishlistPage.classList.add('hidden'); // NEW
-            productDetailPage.classList.add('hidden'); // NEW DETAIL PAGE
+            wishlistPage.classList.add('hidden'); 
+            productDetailPage.classList.add('hidden'); 
             
             // Close mobile menu if open
             mobileMenu.classList.add('hidden');
@@ -1511,11 +1503,9 @@ right: 0;
             // Show the requested page
             if (pageName === 'home') {
                 mainContent.classList.remove('hidden');
-                // Reload featured grid whenever returning to home
                 updateProductGrid('featured');
             } else if (pageName === 'shop') {
                 allProductsPage.classList.remove('hidden');
-                // Reload shop grid when navigating to shop page
                 updateProductGrid('shop');
             } else if (pageName === 'about') {
                 mainContent.classList.remove('hidden');
@@ -1536,9 +1526,9 @@ right: 0;
                 shoppingCartPage.classList.remove('hidden');
             } else if (pageName === 'checkout') {
                 checkoutPage.classList.remove('hidden');
-            } else if (pageName === 'wishlist') { // NEW
+            } else if (pageName === 'wishlist') { 
                 wishlistPage.classList.remove('hidden');
-                window.wishlist.renderPage(); // Render the content when navigating
+                window.wishlist.renderPage(); 
             } else if (pageName === 'product-detail') {
                  productDetailPage.classList.remove('hidden');
             }
@@ -1554,7 +1544,7 @@ right: 0;
         document.getElementById('shop-link').addEventListener('click', function(e) { e.preventDefault(); showPage('shop'); });
         document.getElementById('about-link').addEventListener('click', function(e) { e.preventDefault(); showPage('about'); });
         document.getElementById('contact-link').addEventListener('click', function(e) { e.preventDefault(); showPage('contact'); });
-        document.getElementById('wishlist-icon-btn').addEventListener('click', function(e) { e.preventDefault(); showPage('wishlist'); }); // NEW
+        document.getElementById('wishlist-icon-btn').addEventListener('click', function(e) { e.preventDefault(); showPage('wishlist'); }); 
 
         // Hero Button
         document.getElementById('shop-link-hero').addEventListener('click', function(e) { e.preventDefault(); showPage('shop'); });
@@ -1622,7 +1612,6 @@ right: 0;
 
             } catch (error) {
                 console.error("Error fetching products:", error);
-                // Display error message in the grids
                 if(productGrid) productGrid.innerHTML = `<p class="text-center py-10 text-red-500">Failed to load products: ${error.message}</p>`;
                 if(featuredProductGrid) featuredProductGrid.innerHTML = `<p class="text-center py-10 text-red-500">Failed to load featured products: ${error.message}</p>`;
                 return [];
@@ -1682,13 +1671,12 @@ right: 0;
                 productsToDisplay = allProducts.filter(p => p.featured === true).slice(0, 3);
             } else if (mode === 'shop') {
                 targetGrid = productGrid;
-                // Since pagination is removed, display all in-stock products
                 productsToDisplay = allProducts;
             }
             
             if (!targetGrid) return;
             
-            targetGrid.innerHTML = ''; // Clear existing products
+            targetGrid.innerHTML = ''; 
 
             if (productsToDisplay.length === 0) {
                  targetGrid.innerHTML = `<p class="text-center py-10 ${mode === 'shop' ? 'lg:col-span-4' : 'lg:col-span-3'} text-gray-500">No products found or all are out of stock.</p>`;
@@ -1703,7 +1691,6 @@ right: 0;
             attachQuickViewListeners();
         }
         
-        // --- NEW: Function to attach quick view listeners to dynamically created elements ---
         function attachQuickViewListeners() {
             document.querySelectorAll('.product-card .quick-view-btn').forEach(button => {
                 button.addEventListener('click', function(e) {
@@ -1719,7 +1706,6 @@ right: 0;
         
         // --- Detail Page Logic (Updated to use Firestore fetch) ---
         async function openProductDetailPage(productId) {
-            // Find the product (we fetch all products and find the specific one)
             const allProducts = await fetchProductsFromFirestore();
             const productData = allProducts.find(p => p.id === productId);
 
@@ -1773,12 +1759,26 @@ right: 0;
                 window.cart.open();
             };
             
-            // 6. Update Buy Now Button (simplified checkout for single item)
+            // 6. Update Buy Now Button (FINAL FIX)
             document.getElementById('detail-buy-now').onclick = () => {
-                // Clear cart and add only this item for "Buy Now" flow
-                window.cart.items = [];
-                window.cart.add(productData, parseInt(document.getElementById('detail-quantity').value, 10));
+                
+                // 1. Get the current quantity and product data (already in scope)
+                const quantity = parseInt(document.getElementById('detail-quantity').value, 10);
+                const product = productData; 
 
+                // 2. Create the exact item structure needed for the cart
+                const singleItemForCheckout = {
+                    id: product.id,
+                    title: product.name, 
+                    price: product.price,
+                    imgSrc: product.img,
+                    quantity: quantity
+                };
+
+                // 3. FORCE the global cart state to contain ONLY this item
+                window.cart.items = [singleItemForCheckout];
+
+                // 4. Update the visual cart display and proceed to checkout
                 window.cart.render();
                 showPage('checkout');
             };
@@ -1803,7 +1803,6 @@ right: 0;
         });
 
 
-        // --- NEW: Function to attach wishlist listeners to dynamically created elements ---
         function attachWishlistListeners() {
              document.querySelectorAll('.product-card .wishlist-icon').forEach(button => {
                 button.addEventListener('click', function(e) {
@@ -1824,9 +1823,7 @@ right: 0;
             });
         }
         
-        // --- GLOBAL FUNCTION FOR SEARCH SCRIPT ACCESS ---
         window.getAllProducts = async function() {
-            // Will now fetch all products live from the database
             const products = await fetchProductsFromFirestore(); 
             return products;
         };
@@ -1849,14 +1846,12 @@ right: 0;
                 // Close all other items
                 faqItems.forEach(otherItem => {
                     otherItem.classList.remove('active');
-                    // Reset icon
-                    otherItem.querySelector('.faq-icon').innerHTML = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>'; // Reset to +
+                    otherItem.querySelector('.faq-icon').innerHTML = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>';
                 });
 
                 // If this item was not already open, open it
                 if (!isOpen) {
                     item.classList.add('active');
-                    // Change to -
                     iconContainer.innerHTML = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6"></path></svg>';
                 }
             });
@@ -1865,15 +1860,12 @@ right: 0;
 
     <script id="quick-view-script">
         
-        // Event Delegation for old "Add to Cart" in featured products (FIXED: Added robust data fetching)
         document.body.addEventListener('click', (e) => {
             const addToCartBtn = e.target.closest('.add-to-cart-btn');
             
-            // Only proceed if a dedicated Add to Cart button was clicked (either on card or detail page)
             if (addToCartBtn) { 
                 e.preventDefault();
                 
-                // Fetch product data from the button's data attributes
                 const item = {
                     id: addToCartBtn.dataset.productId,
                     title: addToCartBtn.dataset.title,
@@ -1881,23 +1873,19 @@ right: 0;
                     imgSrc: addToCartBtn.dataset.imgSrc
                 };
                 
-                // Determine quantity (always 1 for quick add, unless from detail page)
                 let quantity = 1;
-                // If the target button is the detail page's Add to Cart button
+                
                 if (addToCartBtn.id === 'detail-add-to-cart') { 
                     quantity = parseInt(document.getElementById('detail-quantity').value, 10);
-                    // Use product data from the detail page scope for consistent naming
                     const detailTitle = document.getElementById('detail-title').textContent;
                     const detailPrice = document.getElementById('detail-price').textContent;
                     const detailImgSrc = document.getElementById('detail-main-image').src;
                     
-                    // Update item properties using the fresh detail page data
                     item.title = detailTitle;
                     item.price = detailPrice;
                     item.imgSrc = detailImgSrc;
                 }
 
-                // Simple validation
                 if (item.id && item.title && item.price && item.imgSrc) {
                     window.cart.add(item, quantity);
                     window.cart.open();
@@ -1911,17 +1899,12 @@ right: 0;
     
     <script id="wishlist-script">
         (function() {
-            // --- STATE ---
             let wishlistItems = []; 
             const WISHLIST_KEY = 'coretick_wishlist';
             
-            // --- SELECTORS ---
-            const wishlistIconBtn = document.getElementById('wishlist-icon-btn');
             const wishlistCountBadge = document.getElementById('wishlist-item-count-badge');
             const wishlistPageContainer = document.getElementById('wishlist-page-container');
-            const wishlistEmptyMsg = document.getElementById('wishlist-empty-msg');
             
-            // --- LOCAL STORAGE PERSISTENCE ---
             function loadWishlist() {
                 const storedItems = localStorage.getItem(WISHLIST_KEY);
                 wishlistItems = storedItems ? JSON.parse(storedItems) : [];
@@ -1932,7 +1915,6 @@ right: 0;
                 localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlistItems));
             }
 
-            // --- UI UPDATES ---
             function updateWishlistUI() {
                 const count = wishlistItems.length;
                 if (count > 0) {
@@ -1942,29 +1924,23 @@ right: 0;
                     wishlistCountBadge.classList.add('hidden');
                 }
                 
-                // Update heart icons on the product grid if visible
                 document.querySelectorAll('.product-card .wishlist-icon').forEach(iconButton => {
                     const id = iconButton.dataset.productId;
                     const isActive = wishlistItems.some(item => item.id === id);
                     iconButton.classList.toggle('active', isActive);
                 });
                 
-                // Re-render the dedicated wishlist page if it's currently visible
                 if (!document.getElementById('wishlist-page').classList.contains('hidden')) {
                     renderWishlistPage();
                 }
             }
             
-            // --- WISHLIST LOGIC ---
             function toggleWishlist(product) {
                 const index = wishlistItems.findIndex(item => item.id === product.id);
                 
                 if (index > -1) {
-                    // Remove item
                     wishlistItems.splice(index, 1);
                 } else {
-                    // Add item (excluding quantity and unnecessary properties)
-                    // Note: We use the price directly from the card text content here
                     wishlistItems.push({
                         id: product.id,
                         name: product.name,
@@ -1983,44 +1959,23 @@ right: 0;
                 updateWishlistUI();
             }
 
-            // --- RENDER WISHLIST PAGE ---
             function renderWishlistPage() {
-                wishlistPageContainer.innerHTML = ''; // Clear container
+                const existingEmptyMsg = document.getElementById('wishlist-empty-msg');
                 
                 if (wishlistItems.length === 0) {
-                    // Re-append the empty message structure if it was removed
-                    if (!document.getElementById('wishlist-empty-msg')) {
-                        const emptyMsgDiv = document.createElement('div');
-                        emptyMsgDiv.id = 'wishlist-empty-msg';
-                        emptyMsgDiv.className = 'text-center py-16';
-                        emptyMsgDiv.innerHTML = `
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-red-300 mx-auto mb-4" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
-                            </svg>
-                            <h2 class="text-2xl font-semibold mb-2">Your Wishlist is Empty</h2>
-                            <p class="text-gray-600 mb-6">Start browsing to save your favorite watches!</p>
-                            <button class="continue-shopping-btn bg-black text-white font-bold py-3 px-8 rounded-lg text-lg hover:bg-gray-800 transition-all duration-300">
-                                Continue Shopping
-                            </button>
-                        `;
-                        wishlistPageContainer.appendChild(emptyMsgDiv);
-                    }
-                    document.getElementById('wishlist-empty-msg').classList.remove('hidden');
+                    if (existingEmptyMsg) existingEmptyMsg.style.display = 'block';
+                    wishlistPageContainer.innerHTML = '';
+                    if(existingEmptyMsg) wishlistPageContainer.appendChild(existingEmptyMsg);
                     return;
                 }
                 
-                // Hide the empty message if it exists
-                const existingEmptyMsg = document.getElementById('wishlist-empty-msg');
-                if (existingEmptyMsg) {
-                    existingEmptyMsg.classList.add('hidden');
-                }
-
+                if (existingEmptyMsg) existingEmptyMsg.style.display = 'none';
 
                 const grid = document.createElement('div');
                 grid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6';
+                wishlistPageContainer.innerHTML = ''; 
 
                 wishlistItems.forEach(item => {
-                    // MODIFIED: Removing discount price visibility
                     const originalPriceHTML = '';
                         
                     const itemCard = document.createElement('div');
@@ -2049,46 +2004,38 @@ right: 0;
 
                 wishlistPageContainer.appendChild(grid);
                 
-                // Re-attach listeners to dynamically created "Remove" buttons
                 document.querySelectorAll('.wishlist-remove-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         e.preventDefault();
                         removeWishlistItem(btn.dataset.id);
-                        // The renderPage() call inside updateWishlistUI handles the re-render.
                     });
                 });
                 
-                // Re-attach listeners to the 'Continue Shopping' button if it was used in the grid
-                const continueShoppingBtn = wishlistPageContainer.querySelector('.continue-shopping-btn');
-                if (continueShoppingBtn) {
-                     continueShoppingBtn.addEventListener('click', (e) => {
+                document.querySelectorAll('.continue-shopping-btn').forEach(btn => {
+                     btn.addEventListener('click', (e) => {
                          e.preventDefault();
                          showPage('shop');
                      });
-                }
+                });
             }
 
 
-            // --- GLOBAL API & INIT ---
             window.wishlist = {
                 items: wishlistItems,
                 toggle: toggleWishlist,
                 remove: removeWishlistItem,
-                renderPage: renderWishlistPage // Function to call when navigating to the page
+                renderPage: renderWishlistPage
             };
             
-            // Initialize on load
             loadWishlist();
         })();
     </script>
     
     <script id="shopping-cart-script">
         (function() {
-            // --- STATE ---
-            let cartItems = []; // { id, title, price, imgSrc, quantity }
+            let cartItems = []; 
             let cartTimerInterval;
             
-            // --- SELECTORS ---
             const cartOverlay = document.getElementById('cart-overlay');
             const cartModal = document.getElementById('cart-modal');
             const cartCloseBtn = document.getElementById('cart-close-btn');
@@ -2101,20 +2048,17 @@ right: 0;
             const cartCheckoutBtn = document.getElementById('cart-checkout-btn');
             const cartViewCartBtn = document.getElementById('cart-view-cart-btn');
             
-            // Upsell Elements
             const upsellSection = document.getElementById('cart-upsell-section');
             const addUpsellBtn = document.getElementById('add-upsell-btn');
             
-            // Page: Shopping Cart
             const cartPageItemsContainer = document.getElementById('cart-page-items-container');
             const cartPageSubtotalEl = document.getElementById('cart-page-subtotal');
             const cartPageCheckoutBtn = document.getElementById('cart-page-checkout-btn');
             const cartPageTimerEl = document.getElementById('cart-countdown-timer');
 
-            // Page: Checkout
             const checkoutForm = document.getElementById('checkout-form');
             const checkoutEmail = document.getElementById('checkout-email');
-            const checkoutCountry = document.getElementById('checkout-country'); // Added missing selector
+            const checkoutCountry = document.getElementById('checkout-country'); 
             const checkoutFirstName = document.getElementById('checkout-first-name');
             const checkoutLastName = document.getElementById('checkout-last-name');
             const checkoutAddress = document.getElementById('checkout-address');
@@ -2127,18 +2071,13 @@ right: 0;
             const checkoutSubtotalEl = document.getElementById('checkout-subtotal');
             const checkoutTotalEl = document.getElementById('checkout-total');
             
-            // Order Confirmation Modal
             const confOverlay = document.getElementById('confirmation-overlay');
             const redirectTimerEl = document.getElementById('redirect-timer');
             const confirmEmailDisplay = document.getElementById('confirm-email-display');
             const confirmPhoneDisplay = document.getElementById('confirm-phone-display');
 
 
-            // --- HELPER FUNCTIONS ---
-            
-            // Formats a number string like "3,200.00" into a float 3200.00
             function parsePrice(priceString) {
-                // Ensure the price is pulled correctly (remove PKR and commas)
                 const priceMatch = priceString.match(/[\d,.]+/);
                 if (priceMatch) {
                     return parseFloat(priceMatch[0].replace(/,/g, '').trim());
@@ -2146,15 +2085,20 @@ right: 0;
                 return 0.00;
             }
             
-            // Formats a float 3200.00 into "PKR 3,200.00"
             function formatPrice(priceFloat) {
                 return `PKR ${priceFloat.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             }
             
-            // --- FIREBASE ORDER SUBMISSION (NEW FUNCTION) ---
+            // --- GUARANTEED FIX: CORRECTED placeOrder function ---
             async function placeOrder() {
                 
-                // 1. Gather Customer Data
+                // Check if the cart has items before processing
+                if (window.cart.items.length === 0) {
+                    console.error("Cart is empty. Cannot place order.");
+                    alert("Your cart is empty. Please add items before checking out.");
+                    return;
+                }
+
                 const customerData = {
                     email: checkoutEmail.value,
                     firstName: checkoutFirstName.value,
@@ -2169,59 +2113,53 @@ right: 0;
                     }
                 };
                 
-                // 2. Gather Order Data
+                // CRITICAL FIX: Ensure orderItems array is correctly mapped from the local cart state
                 const orderItems = window.cart.items.map(item => ({
                     id: item.id,
-                    title: item.title,
-                    price: parsePrice(item.price),
+                    title: item.title,       
+                    price: parsePrice(item.price), // Save as number
                     quantity: item.quantity
                 }));
                 
+                const totalAmount = parsePrice(checkoutTotalEl.textContent);
+                const subtotalAmount = parsePrice(checkoutSubtotalEl.textContent);
+
                 const orderData = {
                     customer: customerData,
-                    items: orderItems,
-                    total: parsePrice(checkoutTotalEl.textContent),
-                    subtotal: parsePrice(checkoutSubtotalEl.textContent),
+                    items: orderItems, // <-- THIS ARRAY IS NOW CORRECTLY INCLUDED
+                    // FIX: Ensure totals are saved as Numbers for dashboard calculations
+                    total: totalAmount, 
+                    subtotal: subtotalAmount,
                     status: 'Pending',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
                 
-                // 3. Save to Firebase
                 try {
                     if (db) {
-                        // Using the public path to store orders
                         const docRef = await db.collection('orders').add(orderData);
                         console.log("Order successfully written with ID: ", docRef.id);
                         
-                        // 4. Show Confirmation and Redirect
                         showConfirmationModal(customerData.email, customerData.phone);
                         
                         // Clear the cart locally after successful placement
                         cartItems = [];
-                        renderCart(); // Update all UI, including empty cart state
+                        renderCart(); 
                         
                     } else {
                         console.error("Firestore is not initialized. Cannot save order.");
-                        // Use console log since alert() is prohibited
                         showFallbackMessage('Order Failed', 'Database connection error. Check console for details.');
                     }
                 } catch (error) {
                     console.error("Error adding document: ", error);
-                    // Use console log since alert() is prohibited
                     showFallbackMessage('Order Failed', 'A database error occurred. Check console for details.');
                 }
             }
             
-            // --- FALLBACK MESSAGE BOX (Since alert() is prohibited) ---
             function showFallbackMessage(title, message) {
-                // Since there is no dedicated message box UI, we use console error for debugging
-                // and simply prevent redirection.
                 console.error(title + ": " + message);
             }
 
-            // --- CONFIRMATION MODAL LOGIC ---
             function showConfirmationModal(email, phone) {
-                // Populate display values
                 confirmEmailDisplay.textContent = email;
                 confirmPhoneDisplay.textContent = phone;
                 
@@ -2239,26 +2177,17 @@ right: 0;
                         clearInterval(redirectInterval);
                         confOverlay.classList.remove('active');
                         document.body.classList.remove('no-scroll');
-                        // Redirect to home page
                         showPage('home'); 
                     }
                 }, 1000);
             }
             
-            // --- CART LOGIC (Remaining functions are unchanged, keeping for completeness) ---
-            
-            /**
-             * Adds an item to the cart or updates its quantity.
-             * @param {object} item - The product item object.
-             * @param {number} [quantity=1] - The quantity to add.
-             */
             function addItemToCart(item, quantity = 1) {
                 const existingItem = cartItems.find(i => i.id === item.id);
                 
                 if (existingItem) {
                     existingItem.quantity += quantity;
                 } else {
-                    // When adding from the detail page or card, item object contains required fields
                     cartItems.push({ 
                         id: item.id, 
                         title: item.name || item.title,
@@ -2268,68 +2197,47 @@ right: 0;
                     });
                 }
                 
-                // Show upsell if 1 item in cart
                 upsellSection.classList.toggle('hidden', cartItems.length !== 1);
                 
                 renderCart();
             }
 
-            /**
-             * Updates the quantity of a specific item in the cart.
-             * @param {string} itemId - The ID of the item to update.
-             * @param {number} newQuantity - The new quantity.
-             */
             function updateItemQuantity(itemId, newQuantity) {
                 const item = cartItems.find(i => i.id === itemId);
                 if (item) {
                     if (newQuantity > 0) {
                         item.quantity = newQuantity;
                     } else {
-                        // Remove item if quantity is 0 or less
                         cartItems = cartItems.filter(i => i.id !== itemId);
                     }
                 }
                 
-                // Hide upsell if cart length is not 1
                 upsellSection.classList.toggle('hidden', cartItems.length !== 1);
                 
                 renderCart();
             }
 
-            /**
-             * Removes an item from the cart.
-             * @param {string} itemId - The ID of the item to remove.
-             */
             function removeItemFromCart(itemId) {
                 cartItems = cartItems.filter(i => i.id !== itemId);
                 
-                // Hide upsell if cart length is not 1
                 upsellSection.classList.toggle('hidden', cartItems.length !== 1);
                 
                 renderCart();
             }
             
-            /**
-             * Calculates the subtotal of all items in the cart.
-             * @returns {number} The total price.
-             */
             function calculateSubtotal() {
                 return cartItems.reduce((total, item) => {
-                    // Handle price formatting consistency
                     let priceValue = parsePrice(item.price);
                     return total + (priceValue * item.quantity);
                 }, 0);
             }
             
-            /**
-             * Re-renders all cart-related UI elements.
-             */
             function renderCart() {
                 const subtotal = calculateSubtotal();
                 const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
                 
                 // --- 1. Render Cart Modal (Slide-in) ---
-                cartItemsContainer.innerHTML = ''; // Clear items
+                cartItemsContainer.innerHTML = ''; 
                 
                 if (cartItems.length === 0) {
                     cartEmptyMsg.classList.remove('hidden');
@@ -2369,9 +2277,8 @@ right: 0;
                 cartSubtotalEl.textContent = formatPrice(subtotal);
                 
                 // --- 2. Render Cart Page (Full) ---
-                cartPageItemsContainer.innerHTML = ''; // Clear items
+                cartPageItemsContainer.innerHTML = ''; 
                 
-                // Add header row back
                 const headerHTML = `
                     <div class="cart-header-row max-md:hidden">
                         <div class_name="col-span-1"></div> <div class="col-span-1">Product</div>
@@ -2382,7 +2289,6 @@ right: 0;
                 cartPageItemsContainer.innerHTML = headerHTML;
 
                 if (cartItems.length === 0) {
-                    // Show empty message
                     const emptyMsgHTML = `
                     <div id="cart-page-empty-msg" class="text-center py-16">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -2396,13 +2302,9 @@ right: 0;
                     </div>`;
                     cartPageItemsContainer.innerHTML += emptyMsgHTML;
                 } else {
-                    // Render item rows
                     cartItems.forEach(item => {
-                        // Ensure price is parsed correctly for calculation
                         const priceValue = parsePrice(item.price);
                         const itemTotal = priceValue * item.quantity;
-                        
-                        // Use the raw price string for display in the row
                         const displayPrice = item.price;
 
                         const itemRowHTML = `
@@ -2432,13 +2334,11 @@ right: 0;
                     });
                 }
                 
-                // Update page subtotal
                 cartPageSubtotalEl.textContent = formatPrice(subtotal);
                 cartPageCheckoutBtn.disabled = cartItems.length === 0;
 
-                
                 // --- 3. Render Checkout Summary ---
-                checkoutSummaryItems.innerHTML = ''; // Clear
+                checkoutSummaryItems.innerHTML = ''; 
                 
                 cartItems.forEach(item => {
                     const priceValue = parsePrice(item.price);
@@ -2458,14 +2358,13 @@ right: 0;
                 });
                 
                 checkoutSubtotalEl.textContent = formatPrice(subtotal);
-                checkoutTotalEl.textContent = formatPrice(subtotal); // Assuming free shipping
+                checkoutTotalEl.textContent = formatPrice(subtotal);
             }
             
-            // --- MODAL CONTROLS ---
             function openCart() {
                 cartOverlay.classList.add('active');
                 cartModal.classList.add('active');
-                document.body.classList.add('no-scroll'); // FIXED: Correctly lock scroll
+                document.body.classList.add('no-scroll');
             }
             
             function closeCart() {
@@ -2474,9 +2373,8 @@ right: 0;
                 document.body.classList.remove('no-scroll');
             }
             
-            // --- TIMER CONTROLS ---
             function startCartTimer() {
-                let duration = 20 * 60; // 20 minutes in seconds
+                let duration = 20 * 60; 
                 if (cartTimerInterval) clearInterval(cartTimerInterval);
                 
                 function updateTimer() {
@@ -2492,25 +2390,20 @@ right: 0;
                         if (cartPageTimerEl) {
                             cartPageTimerEl.textContent = "Cart Expired";
                         }
-                        // Optionally, you could clear the cart here
-                        // cartItems = [];
-                        // renderCart();
                     }
                 }
                 
-                updateTimer(); // Run once immediately
+                updateTimer(); 
                 cartTimerInterval = setInterval(updateTimer, 1000);
             }
 
             // --- EVENT LISTENERS ---
             
-            // Open cart modal
             cartIconBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 openCart();
             });
             
-            // Close cart modal
             cartCloseBtn.addEventListener('click', closeCart);
             cartOverlay.addEventListener('click', (e) => {
                 if (e.target === cartOverlay) {
@@ -2518,15 +2411,13 @@ right: 0;
                 }
             });
             
-            // "View Cart" button in modal
             cartViewCartBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 closeCart();
-                showPage('cart'); // Navigate to the full cart page
-                startCartTimer(); // Start the timer when viewing the page
+                showPage('cart'); 
+                startCartTimer(); 
             });
             
-            // "Continue Shopping" buttons
             document.body.addEventListener('click', e => {
                 if (e.target.classList.contains('continue-shopping-btn')) {
                     e.preventDefault();
@@ -2534,7 +2425,6 @@ right: 0;
                 }
             });
 
-            // Add Upsell Item
             addUpsellBtn.addEventListener('click', (e) => {
                 const btn = e.target;
                 const item = {
@@ -2544,10 +2434,9 @@ right: 0;
                     imgSrc: btn.dataset.imgSrc
                 };
                 addItemToCart(item, 1);
-                upsellSection.classList.add('hidden'); // Hide after adding
+                upsellSection.classList.add('hidden');
             });
 
-            // Cart Modal: Quantity & Remove
             cartItemsContainer.addEventListener('click', (e) => {
                 const target = e.target;
                 const id = target.dataset.id;
@@ -2568,7 +2457,6 @@ right: 0;
                 }
             });
             
-            // Cart Page: Quantity & Remove
             cartPageItemsContainer.addEventListener('click', (e) => {
                 const target = e.target;
                 const id = target.dataset.id;
@@ -2589,39 +2477,31 @@ right: 0;
                 }
             });
             
-            // Cart Modal: Terms Checkbox
             cartTermsCheck.addEventListener('change', () => {
                 cartCheckoutBtn.disabled = !cartTermsCheck.checked;
             });
             
-            // Cart Modal: Checkout Button
             cartCheckoutBtn.addEventListener('click', () => {
                 if (!cartTermsCheck.checked) return;
                 closeCart();
                 showPage('checkout');
             });
             
-            // Cart Page: Checkout Button
             cartPageCheckoutBtn.addEventListener('click', () => {
                 showPage('checkout');
             });
             
-            // --- Checkout Form Submission (FIXED: Added placeOrder call) ---
             checkoutForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
-                // Form validation is handled by HTML 'required' attributes, but we ensure one final check
                 if (checkoutForm.checkValidity()) {
-                    placeOrder(); // Call the function to process the order
+                    placeOrder(); 
                 } else {
-                    // This should generally not be hit if required attributes are used correctly
                     console.error('Form validation failed.');
                 }
             });
 
             
-            // --- GLOBAL API ---
-            // Expose cart functions to other scripts (like Quick View)
             window.cart = {
                 add: addItemToCart,
                 update: updateItemQuantity,
@@ -2629,10 +2509,9 @@ right: 0;
                 open: openCart,
                 close: closeCart,
                 render: renderCart,
-                items: cartItems // Expose items for Firebase submission
+                items: cartItems
             };
             
-            // --- INITIAL RENDER ---
             renderCart();
 
         })();
@@ -2641,7 +2520,6 @@ right: 0;
 
     <script id="search-script">
         (function() {
-            // --- SELECTORS ---
             const searchIconBtn = document.getElementById('search-icon-btn');
             const searchOverlay = document.getElementById('search-overlay');
             const searchInput = document.getElementById('search-input');
@@ -2651,7 +2529,6 @@ right: 0;
             let isSearchOpen = false;
             let allProductsCache = [];
             
-            // Helper function to debounce search input
             function debounce(func, delay) {
                 let timeout;
                 return function(...args) {
@@ -2660,25 +2537,17 @@ right: 0;
                 };
             }
             
-            // --- CORE LOGIC ---
-            
-            /**
-             * Toggles the search overlay visibility.
-             */
             window.toggleSearch = function() {
                 isSearchOpen = !isSearchOpen;
                 searchOverlay.classList.toggle('active', isSearchOpen);
                 document.body.classList.toggle('no-scroll', isSearchOpen);
                 
                 if (isSearchOpen) {
-                    // Focus the input and clear results when opening
                     searchInput.value = '';
                     searchResultsContainer.innerHTML = '';
-                    setTimeout(() => searchInput.focus(), 300); // Small delay for animation
+                    setTimeout(() => searchInput.focus(), 300); 
                     
-                    // Cache all products when the search is opened
                     if (allProductsCache.length === 0 && window.getAllProducts) {
-                         // Asynchronously get products and store in cache
                          window.getAllProducts().then(products => {
                              allProductsCache = products;
                          });
@@ -2687,45 +2556,37 @@ right: 0;
                 }
             };
             
-            /**
-             * Performs the search and renders results.
-             */
             function performSearch() {
                 const query = searchInput.value.trim().toLowerCase();
-                searchResultsContainer.innerHTML = ''; // Clear previous results
+                searchResultsContainer.innerHTML = ''; 
 
                 if (query.length === 0) {
-                    // Display initial helpful message or nothing
                     searchResultsContainer.innerHTML = `<p class="p-4 text-center text-gray-500">Start typing to see watch suggestions.</p>`;
                     return;
                 }
                 
-                // Ensure cache is loaded before searching
                 if (allProductsCache.length === 0) {
                     searchResultsContainer.innerHTML = `<p class="p-4 text-center text-gray-500">Products still loading, please wait...</p>`;
                     return;
                 }
 
-                // Filter the cached product list
                 const filteredProducts = allProductsCache.filter(product => 
                     product.name.toLowerCase().includes(query) || 
                     product.description.toLowerCase().includes(query)
-                ).slice(0, 5); // Limit to 5 results as seen in the video example
+                ).slice(0, 5); 
 
                 if (filteredProducts.length === 0) {
                     searchResultsContainer.innerHTML = `<p class="p-4 text-center text-gray-500">No results found for "${searchInput.value}".</p>`;
                     return;
                 }
                 
-                // Render the results
                 filteredProducts.forEach(product => {
                     const price = `PKR ${product.price}`;
                     
                     const resultItem = document.createElement('a');
-                    // Use the quick-view function to transition to the detail page
                     resultItem.href = "#"; 
                     resultItem.className = 'search-result-item';
-                    resultItem.dataset.productId = product.id; // For detail page function
+                    resultItem.dataset.productId = product.id; 
                     
                     resultItem.innerHTML = `
                         <img src="${product.img}" alt="${product.name}">
@@ -2735,11 +2596,10 @@ right: 0;
                         </div>
                     `;
                     
-                    // Add click listener to open the detail page and close search
                     resultItem.addEventListener('click', (e) => {
                         e.preventDefault();
                         window.openProductDetailPage(product.id);
-                        window.toggleSearch(); // Close the search overlay
+                        window.toggleSearch(); 
                     });
 
                     searchResultsContainer.appendChild(resultItem);
@@ -2748,31 +2608,24 @@ right: 0;
             
             const debouncedSearch = debounce(performSearch, 200);
 
-            // --- EVENT LISTENERS ---
-            
-            // 1. Open Search: Click on the header search icon
             searchIconBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 window.toggleSearch();
             });
             
-            // 2. Close Search: Click on the 'X' button
             searchCloseBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 window.toggleSearch();
             });
             
-            // 3. Search Input: Keyup event for instant search
             searchInput.addEventListener('keyup', debouncedSearch);
             
-            // 4. Close Search on global click outside (optional but good UX)
             document.body.addEventListener('click', (e) => {
                 if (isSearchOpen && !searchOverlay.contains(e.target) && !searchIconBtn.contains(e.target)) {
                     window.toggleSearch();
                 }
             });
             
-            // Prevent clicks inside the result box from closing the search overlay immediately
             searchResultsContainer.addEventListener('click', (e) => {
                 e.stopPropagation();
             });
@@ -2780,7 +2633,6 @@ right: 0;
     </script>
 
     <script id="social-proof-timers">
-        // --- Social Proof Timers Script ---
         (function() {
             let viewingIntervalId = null;
             let soldTimeoutId = null;
@@ -2789,57 +2641,45 @@ right: 0;
             const DETAIL_PAGE = document.getElementById('product-detail-page');
 
             function getRandomInt(min, max) {
-                // Return a random integer between min and max (inclusive)
                 return Math.floor(Math.random() * (max - min + 1)) + min;
             }
 
-            // 1. Viewing Counter (Every 3 seconds, 5-150)
             function updateViewingCounter() {
                 if (!VIEWING_EL) return;
                 const viewers = getRandomInt(5, 150);
                 VIEWING_EL.textContent = `${viewers} people are viewing this right now`;
             }
 
-            // 2. Sold Counter (Every 5 hours, 10-200)
             function updateSoldCounter() {
                 if (!SOLD_EL) return;
                 const soldCount = getRandomInt(10, 200);
-                // Hours sold in last X hours (X is random 1-24, using 16 as an initial default)
                 const hours = getRandomInt(1, 24); 
                 SOLD_EL.textContent = `${soldCount} sold in last ${hours} hours`;
                 
-                // Re-set the timeout for the next 5 hours (5 hours * 3600 seconds * 1000 milliseconds)
                 const fiveHoursInMs = 5 * 60 * 60 * 1000;
-                // Clear any existing timeout before setting a new one
                 if (soldTimeoutId) clearTimeout(soldTimeoutId);
                 soldTimeoutId = setTimeout(updateSoldCounter, fiveHoursInMs);
             }
             
-            // Function to manage the viewing counter based on page visibility
             function manageViewingTimer() {
                 const isDetailPageVisible = DETAIL_PAGE && !DETAIL_PAGE.classList.contains('hidden');
                 
                 if (isDetailPageVisible && viewingIntervalId === null) {
-                    // Page is visible, start the interval
-                    updateViewingCounter(); // Initial update
-                    viewingIntervalId = setInterval(updateViewingCounter, 3000); // Update every 3 seconds
+                    updateViewingCounter(); 
+                    viewingIntervalId = setInterval(updateViewingCounter, 3000); 
                 } else if (!isDetailPageVisible && viewingIntervalId !== null) {
-                    // Page is hidden, stop the interval
                     clearInterval(viewingIntervalId);
                     viewingIntervalId = null;
                 }
             }
             
-            // Intercept the global showPage function to manage the viewing timer
             const originalShowPage = window.showPage;
             window.showPage = function(pageName) {
                 originalShowPage(pageName);
                 
-                // If navigating to the detail page, start/check timers
                 if (pageName === 'product-detail') {
                     manageViewingTimer();
                 } else {
-                    // If navigating away, ensure the viewing timer is stopped
                     if (viewingIntervalId !== null) {
                          clearInterval(viewingIntervalId);
                          viewingIntervalId = null;
@@ -2847,12 +2687,8 @@ right: 0;
                 }
             };
 
-            // Initial load checks
             window.addEventListener('load', () => {
-                // Start the sold counter immediately and set the 5-hour recurrence
                 updateSoldCounter(); 
-                
-                // Check if the detail page is visible on load 
                 manageViewingTimer();
             });
         })();
@@ -2862,17 +2698,14 @@ right: 0;
         window.addEventListener('load', function() {
             const startTime = new Date().getTime();
             const preloader = document.getElementById('preloader');
-            const minDuration = 3000; // 3 seconds
+            const minDuration = 3000; 
 
             function hidePreloader() {
-                // Add fade-out class
                 preloader.classList.add('fade-out');
                 
-                // Remove from DOM after transition
-                // Using setTimeout as a reliable fallback to ensure removal
                 setTimeout(() => {
                     preloader.style.display = 'none';
-                }, 750); // Match CSS transition duration
+                }, 750); 
             }
 
             const loadTime = new Date().getTime() - startTime;
